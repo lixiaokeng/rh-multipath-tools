@@ -187,12 +187,6 @@ setup_default_blist (struct config * conf)
 	if (store_ble(conf->blist_devnode, str, ORIGIN_DEFAULT))
 		return 1;
 
-	str = STRDUP("(SCSI_IDENT_|ID_WWN)");
-	if (!str)
-		return 1;
-	if (store_ble(conf->elist_property, str, ORIGIN_DEFAULT))
-		return 1;
-
 	vector_foreach_slot (conf->hwtable, hwe, i) {
 		if (hwe->bl_product) {
 			if (find_blacklist_device(conf->blist_device,
@@ -394,7 +388,8 @@ filter_property(struct config *conf, struct udev_device *udev, int lvl,
 			*uid_attribute != '\0';
 		bool uid_attr_seen = false;
 
-		r = MATCH_PROPERTY_BLIST_MISSING;
+		if (VECTOR_SIZE(conf->elist_property))
+			r = MATCH_PROPERTY_BLIST_MISSING;
 		udev_list_entry_foreach(list_entry,
 				udev_device_get_properties_list_entry(udev)) {
 
