@@ -181,12 +181,6 @@ setup_default_blist (struct config * conf)
 	if (store_ble(conf->blist_devnode, str, ORIGIN_DEFAULT))
 		return 1;
 
-	str = STRDUP("(SCSI_IDENT_|ID_WWN)");
-	if (!str)
-		return 1;
-	if (store_ble(conf->elist_property, str, ORIGIN_DEFAULT))
-		return 1;
-
 	vector_foreach_slot (conf->hwtable, hwe, i) {
 		if (hwe->bl_product) {
 			if (_blacklist_device(conf->blist_device, hwe->vendor,
@@ -390,9 +384,12 @@ filter_property(struct config * conf, struct udev_device * udev)
 	 * This is the inverse of the 'normal' matching;
 	 * the environment variable _has_ to match.
 	 */
-	log_filter(devname, NULL, NULL, NULL, NULL,
-		   MATCH_PROPERTY_BLIST_MISSING);
-	return MATCH_PROPERTY_BLIST_MISSING;
+	if (VECTOR_SIZE(conf->elist_property)) {
+		log_filter(devname, NULL, NULL, NULL, NULL,
+			   MATCH_PROPERTY_BLIST_MISSING);
+		return MATCH_PROPERTY_BLIST_MISSING;
+	}
+	return 0;
 }
 
 void
