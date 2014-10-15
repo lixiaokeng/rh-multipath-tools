@@ -9,6 +9,7 @@
 
 #define ORIGIN_DEFAULT 0
 #define ORIGIN_CONFIG  1
+#define ORIGIN_NO_CONFIG 2
 
 /*
  * In kernel, fast_io_fail == 0 means immediate failure on rport delete.
