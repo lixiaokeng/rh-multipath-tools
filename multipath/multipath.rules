@@ -6,6 +6,7 @@ IMPORT{cmdline}="nompath"
 ENV{nompath}=="?*", GOTO="end_mpath"
 IMPORT{cmdline}="multipath"
 ENV{multipath}=="off", GOTO="end_mpath"
+TEST!="/etc/multipath.conf", GOTO="end_mpath"
 
 KERNEL=="dm-*", GOTO="check_kpartx"
 ENV{DEVTYPE}!="partition", GOTO="test_dev"
