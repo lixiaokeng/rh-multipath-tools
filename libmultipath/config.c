@@ -25,6 +25,7 @@
 #include "prio.h"
 #include "devmapper.h"
 #include "mpath_cmd.h"
+#include "version.h"
 
 static int
 hwe_strmatch (struct hwentry *hwe1, struct hwentry *hwe2)
@@ -667,6 +668,22 @@ load_config (char * file)
 			factorize_hwtable(conf->hwtable, builtin_hwtable_size);
 		}
 
+	} else {
+		condlog(0, "/etc/multipath.conf does not exist, blacklisting all devices.");
+		condlog(0, "A default multipath.conf file is located at");
+		condlog(0, "/usr/share/doc/device-mapper-multipath-%d.%d.%d/multipath.conf", MULTIPATH_VERSION(VERSION_CODE));
+		if (conf->blist_devnode == NULL) {
+			conf->blist_devnode = vector_alloc();
+			if (!conf->blist_devnode) {
+				condlog(0, "cannot allocate blacklist\n");
+				goto out;
+			}
+		}
+		if (store_ble(conf->blist_devnode, strdup(".*"),
+		              ORIGIN_NO_CONFIG)) {
+			condlog(0, "cannot store default no-config blacklist\n");
+			goto out;
+		}
 	}
 
 	conf->processed_main_config = 1;
