@@ -26,6 +26,7 @@
 #include "devmapper.h"
 #include "mpath_cmd.h"
 #include "propsel.h"
+#include "version.h"
 
 static int
 hwe_strmatch (const struct hwentry *hwe1, const struct hwentry *hwe2)
@@ -778,6 +779,20 @@ load_config (char * file)
 			goto out;
 		}
 		factorize_hwtable(conf->hwtable, builtin_hwtable_size, file);
+	} else {
+		condlog(0, "/etc/multipath.conf does not exist, blacklisting all devices.");
+		if (conf->blist_devnode == NULL) {
+			conf->blist_devnode = vector_alloc();
+			if (!conf->blist_devnode) {
+				condlog(0, "cannot allocate blacklist\n");
+				goto out;
+			}
+		}
+		if (store_ble(conf->blist_devnode, strdup(".*"),
+		              ORIGIN_NO_CONFIG)) {
+			condlog(0, "cannot store default no-config blacklist\n");
+			goto out;
+		}
 	}
 
 	conf->processed_main_config = 1;
