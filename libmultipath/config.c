@@ -679,6 +679,7 @@ load_config (char * file)
 		condlog(0, "/etc/multipath.conf does not exist, blacklisting all devices.");
 		condlog(0, "A default multipath.conf file is located at");
 		condlog(0, "/usr/share/doc/device-mapper-multipath-%d.%d.%d/multipath.conf", MULTIPATH_VERSION(VERSION_CODE));
+		condlog(0, "You can run /sbin/mpathconf to create or modify /etc/multipath.conf");
 		if (conf->blist_devnode == NULL) {
 			conf->blist_devnode = vector_alloc();
 			if (!conf->blist_devnode) {
