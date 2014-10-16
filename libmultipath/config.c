@@ -659,6 +659,7 @@ load_config (char * file)
 
 	} else {
 		condlog(0, "/etc/multipath.conf does not exist, blacklisting all devices.");
+		condlog(0, "You can run /sbin/mpathconf to create or modify /etc/multipath.conf");
 		if (conf->blist_devnode == NULL) {
 			conf->blist_devnode = vector_alloc();
 			if (!conf->blist_devnode) {
