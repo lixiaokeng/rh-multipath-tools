@@ -451,3 +451,47 @@ int unmark_failed_wwid(const char *wwid)
 	print_failed_wwid_result("unmark_failed", wwid, r);
 	return r;
 }
+
+int remember_cmdline_wwid(void)
+{
+	FILE *f = NULL;
+	char buf[LINE_MAX], *next, *ptr;
+	int ret = 0;
+
+	f = fopen("/proc/cmdline", "re");
+	if (!f) {
+		condlog(0, "can't open /proc/cmdline : %s", strerror(errno));
+		return -1;
+	}
+
+	if (!fgets(buf, sizeof(buf), f)) {
+		if (ferror(f))
+			condlog(0, "read of /proc/cmdline failed : %s",
+				strerror(errno));
+		else
+			condlog(0, "couldn't read /proc/cmdline");
+		fclose(f);
+		return -1;
+	}
+	fclose(f);
+	next = buf;
+	while((ptr = strstr(next, "mpath.wwid="))) {
+		ptr += 11;
+		next = strpbrk(ptr, " \t\n");
+		if (next) {
+			*next = '\0';
+			next++;
+		}
+		if (strlen(ptr)) {
+			if (remember_wwid(ptr) != 0)
+				ret = -1;
+		}
+		else {
+			condlog(0, "empty mpath.wwid kernel command line option");
+			ret = -1;
+		}
+		if (!next)
+			break;
+	}
+	return ret;
+}
