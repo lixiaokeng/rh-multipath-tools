@@ -102,7 +102,7 @@ usage (char * progname)
 {
 	fprintf (stderr, VERSION_STRING);
 	fprintf (stderr, "Usage:\n");
-	fprintf (stderr, "  %s [-a|-c|-w|-W] [-d] [-r] [-i] [-v lvl] [-p pol] [-b fil] [-q] [dev]\n", progname);
+	fprintf (stderr, "  %s [-a|-A|-c|-w|-W] [-d] [-r] [-i] [-v lvl] [-p pol] [-b fil] [-q] [dev]\n", progname);
 	fprintf (stderr, "  %s -l|-ll|-f [-v lvl] [-b fil] [-R num] [dev]\n", progname);
 	fprintf (stderr, "  %s -F [-v lvl] [-R num]\n", progname);
 	fprintf (stderr, "  %s -t\n", progname);
@@ -116,6 +116,8 @@ usage (char * progname)
 		"  -f      flush a multipath device map\n"
 		"  -F      flush all multipath device maps\n"
 		"  -a      add a device wwid to the wwids file\n"
+		"  -A      add devices from kernel command line mpath.wwids\n"
+		"          parameters to wwids file\n"
 		"  -c      check if a device should be a path in a multipath device\n"
 		"  -C      check if a multipath device has usable paths\n"
 		"  -q      allow queue_if_no_path when multipathd is not running\n"
@@ -602,7 +604,7 @@ main (int argc, char *argv[])
 		exit(1);
 	multipath_conf = conf;
 	conf->retrigger_tries = 0;
-	while ((arg = getopt(argc, argv, ":adcChl::FfM:v:p:b:BrR:itquUwW")) != EOF ) {
+	while ((arg = getopt(argc, argv, ":aAdcChl::FfM:v:p:b:BrR:itquUwW")) != EOF ) {
 		switch(arg) {
 		case 1: printf("optarg : %s\n",optarg);
 			break;
@@ -669,6 +671,10 @@ main (int argc, char *argv[])
 		case 't':
 			r = dump_config(conf);
 			goto out_free_config;
+		case 'A':
+			if (remember_cmdline_wwid() != 0)
+				exit(1);
+			exit(0);
 		case 'h':
 			usage(argv[0]);
 			exit(0);
