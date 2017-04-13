@@ -401,7 +401,7 @@ static int find_multipaths_check_timeout(const struct path *pp, long tmo,
 	struct timespec now, ftimes[2], tdiff;
 	struct stat st;
 	long fd;
-	int r, err, retries = 0;
+	int r, err = 0, retries = 0;
 
 	clock_gettime(CLOCK_REALTIME, &now);
 
