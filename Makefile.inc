@@ -88,15 +88,23 @@ TEST_CC_OPTION = $(shell \
 		echo "$(2)"; \
 	fi)
 
-STACKPROT := $(call TEST_CC_OPTION,-fstack-protector-strong,-fstack-protector)
 ERROR_DISCARDED_QUALIFIERS := $(call TEST_CC_OPTION,-Werror=discarded-qualifiers,)
-
-OPTFLAGS	= -O2 -g -pipe -Wall -Wextra -Wformat=2 -Werror=implicit-int \
-		  -Werror=implicit-function-declaration -Werror=format-security \
-		  -Wno-sign-compare -Wno-unused-parameter -Wno-clobbered \
-		  -Werror=cast-qual $(ERROR_DISCARDED_QUALIFIERS) \
-		  -Wp,-D_FORTIFY_SOURCE=2 $(STACKPROT) \
-		  --param=ssp-buffer-size=4
+ifndef RPM_OPT_FLAGS
+	STACKPROT := $(call TEST_CC_OPTION,-fstack-protector-strong,-fstack-protector)
+	OPTFLAGS	= -O2 -g -pipe -Wall -Werror=format-security \
+			  -Wp,-D_FORTIFY_SOURCE=2 -fexceptions \
+			  $(STACKPROT) --param=ssp-buffer-size=4 \
+			  -grecord-gcc-switches
+	ifeq ($(shell test -f /usr/lib/rpm/redhat/redhat-hardened-cc1 && echo 1),1)
+		OPTFLAGS += -specs=/usr/lib/rpm/redhat/redhat-hardened-cc1
+	endif
+else
+	OPTFLAGS = $(RPM_OPT_FLAGS)
+endif
+OPTFLAGS	+= -Wextra -Wstrict-prototypes -Wformat=2 -Werror=implicit-int \
+		   -Werror=implicit-function-declaration -Wno-sign-compare \
+		   -Wno-unused-parameter $(ERROR_DISCARDED_QUALIFIERS) \
+		   -Werror=cast-qual
 
 CFLAGS		:= $(OPTFLAGS) -DBIN_DIR=\"$(bindir)\" -DLIB_STRING=\"${LIB}\" -DRUN_DIR=\"${RUN}\" \
 		   -MMD -MP $(CFLAGS)
