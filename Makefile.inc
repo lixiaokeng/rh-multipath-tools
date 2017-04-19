@@ -80,13 +80,19 @@ TEST_CC_OPTION = $(shell \
 		echo "$(2)"; \
 	fi)
 
-STACKPROT := $(call TEST_CC_OPTION,-fstack-protector-strong,-fstack-protector)
-
-OPTFLAGS	= -O2 -g -pipe -Wall -Wextra -Wformat=2 -Werror=implicit-int \
-		  -Werror=implicit-function-declaration -Werror=format-security \
-		  -Wno-sign-compare -Wno-unused-parameter -Wno-clobbered \
-		  -Wp,-D_FORTIFY_SOURCE=2 $(STACKPROT) \
-		  --param=ssp-buffer-size=4
+ifndef RPM_OPT_FLAGS
+	STACKPROT := $(call TEST_CC_OPTION,-fstack-protector-strong,-fstack-protector)
+	OPTFLAGS	= -O2 -g -pipe -Wall -Werror=format-security \
+			  -Wp,-D_FORTIFY_SOURCE=2 -fexceptions \
+			  $(STACKPROT) --param=ssp-buffer-size=4 \
+			  -grecord-gcc-switches
+	ifeq ($(shell test -f /usr/lib/rpm/redhat/redhat-hardened-cc1 && echo 1),1)
+		OPTFLAGS += -specs=/usr/lib/rpm/redhat/redhat-hardened-cc1
+	endif
+endif
+OPTFLAGS	+= -Wextra -Wstrict-prototypes -Wformat=2 -Werror=implicit-int \
+		   -Werror=implicit-function-declaration -Wno-sign-compare \
+		   -Wno-unused-parameter
 
 CFLAGS		= $(OPTFLAGS) -DLIB_STRING=\"${LIB}\" -DRUN_DIR=\"${RUN}\"
 BIN_CFLAGS	= -fPIE -DPIE
