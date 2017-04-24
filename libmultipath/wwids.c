@@ -319,7 +319,7 @@ remember_wwid(char *wwid)
 		condlog(3, "wrote wwid %s to wwids file", wwid);
 	else
 		condlog(4, "wwid %s already in wwids file", wwid);
-	return 0;
+	return ret;
 }
 
 int remember_cmdline_wwid(void)
@@ -353,7 +353,7 @@ int remember_cmdline_wwid(void)
 			next++;
 		}
 		if (strlen(ptr)) {
-			if (remember_wwid(ptr) != 0)
+			if (remember_wwid(ptr) < 0)
 				ret = -1;
 		}
 		else {
