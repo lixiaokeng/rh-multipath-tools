@@ -416,7 +416,7 @@ configure (struct config *conf, enum mpath_cmds cmd,
 		}
 		if (cmd == CMD_ADD_WWID) {
 			r = remember_wwid(refwwid);
-			if (r == 0)
+			if (r >= 0)
 				printf("wwid '%s' added\n", refwwid);
 			else
 				printf("failed adding '%s' to wwids file\n",
@@ -710,16 +710,6 @@ main (int argc, char *argv[])
 			usage(argv[0]);
 			exit(1);
 		}
-	}
-
-	/*
-	 * FIXME: new device detection with find_multipaths currently
-	 * doesn't work reliably.
-	 */
-	if (cmd ==  CMD_VALID_PATH &&
-	    conf->find_multipaths && conf->ignore_wwids) {
-		condlog(2, "ignoring -i flag because find_multipath is set in multipath.conf");
-		conf->ignore_wwids = 0;
 	}
 
 	if (getuid() != 0) {

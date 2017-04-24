@@ -2172,7 +2172,8 @@ configure (struct vectors * vecs)
 
 	sync_maps_state(mpvec);
 	vector_foreach_slot(mpvec, mpp, i){
-		remember_wwid(mpp->wwid);
+		if (remember_wwid(mpp->wwid) == 1)
+			trigger_paths_udev_change(mpp);
 		update_map_pr(mpp);
 	}
 
@@ -2251,10 +2252,6 @@ reconfigure (struct vectors * vecs)
 		conf->verbosity = verbosity;
 	if (bindings_read_only)
 		conf->bindings_read_only = bindings_read_only;
-	if (conf->find_multipaths) {
-		condlog(2, "find_multipaths is set: -n is implied");
-		ignore_new_devs = 1;
-	}
 	if (ignore_new_devs)
 		conf->ignore_new_devs = ignore_new_devs;
 	uxsock_timeout = conf->uxsock_timeout;
