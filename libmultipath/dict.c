@@ -51,6 +51,21 @@ set_str(vector strvec, void *ptr)
 }
 
 static int
+set_regex(vector strvec, void *ptr)
+{
+	char **str_ptr = (char **)ptr;
+
+	if (*str_ptr)
+		FREE(*str_ptr);
+	*str_ptr = set_regex_value(strvec);
+
+	if (!*str_ptr)
+		return 1;
+
+	return 0;
+}
+
+static int
 set_yes_no(vector strvec, void *ptr)
 {
 	char * buff;
@@ -1175,7 +1190,7 @@ ble_ ## option ## _handler (struct config *conf, vector strvec)		\
 	if (!conf->option)						\
 		return 1;						\
 									\
-	buff = set_value(strvec);					\
+	buff = set_regex_value(strvec);					\
 	if (!buff)							\
 		return 1;						\
 									\
@@ -1191,7 +1206,7 @@ ble_ ## option ## _ ## name ## _handler (struct config *conf, vector strvec) \
 	if (!conf->option)						\
 		return 1;						\
 									\
-	buff = set_value(strvec);					\
+	buff = set_regex_value(strvec);					\
 	if (!buff)							\
 		return 1;						\
 									\
@@ -1286,16 +1301,16 @@ device_handler(struct config *conf, vector strvec)
 	return 0;
 }
 
-declare_hw_handler(vendor, set_str)
+declare_hw_handler(vendor, set_regex)
 declare_hw_snprint(vendor, print_str)
 
-declare_hw_handler(product, set_str)
+declare_hw_handler(product, set_regex)
 declare_hw_snprint(product, print_str)
 
-declare_hw_handler(revision, set_str)
+declare_hw_handler(revision, set_regex)
 declare_hw_snprint(revision, print_str)
 
-declare_hw_handler(bl_product, set_str)
+declare_hw_handler(bl_product, set_regex)
 declare_hw_snprint(bl_product, print_str)
 
 declare_hw_handler(hwhandler, set_str)
