@@ -384,6 +384,19 @@ oom:
 	return NULL;
 }
 
+void *
+set_regex_value(vector strvec)
+{
+	char *buff = set_value(strvec);
+
+	if (buff && strcmp("*", buff) == 0) {
+		condlog(0, "Invalid regular expression \"*\" in multipath.conf. Using \".*\"");
+		FREE(buff);
+		return strdup(".*");
+	}
+	return buff;
+}
+
 /* non-recursive configuration stream handler */
 static int kw_level = 0;
 
