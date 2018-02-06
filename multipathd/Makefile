@@ -22,7 +22,8 @@ ifdef SYSTEMD
 	endif
 endif
 
-OBJS = main.o pidfile.o uxlsnr.o uxclnt.o cli.o cli_handlers.o waiter.o
+OBJS = main.o pidfile.o uxlsnr.o uxclnt.o cli.o cli_handlers.o waiter.o \
+       dmevents.o
 
 EXEC = multipathd
 

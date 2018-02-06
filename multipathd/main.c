@@ -82,6 +82,7 @@ static int use_watchdog;
 #include "cli_handlers.h"
 #include "lock.h"
 #include "waiter.h"
+#include "dmevents.h"
 #include "io_err_stat.h"
 #include "wwids.h"
 #include "../third-party/valgrind/drd.h"
@@ -108,6 +109,7 @@ int uxsock_timeout;
 int verbosity;
 int bindings_read_only;
 int ignore_new_devs;
+int poll_dmevents = 1;
 enum daemon_status running_state = DAEMON_INIT;
 pid_t daemon_pid;
 pthread_mutex_t config_lock = PTHREAD_MUTEX_INITIALIZER;
@@ -288,11 +290,23 @@ switch_pathgroup (struct multipath * mpp)
 		 mpp->alias, mpp->bestpg);
 }
 
+static int
+wait_for_events(struct multipath *mpp, struct vectors *vecs)
+{
+	if (poll_dmevents)
+		return watch_dmevents(mpp->alias);
+	else
+		return start_waiter_thread(mpp, vecs);
+}
+
 static void
 remove_map_and_stop_waiter(struct multipath *mpp, struct vectors *vecs,
 			   int purge_vec)
 {
-	stop_waiter_thread(mpp, vecs);
+	/* devices are automatically removed by the dmevent polling code,
+	 * so they don't need to be manually removed here */
+	if (!poll_dmevents)
+		stop_waiter_thread(mpp, vecs);
 	remove_map(mpp, vecs, purge_vec);
 }
 
@@ -305,8 +319,12 @@ remove_maps_and_stop_waiters(struct vectors *vecs)
 	if (!vecs)
 		return;
 
-	vector_foreach_slot(vecs->mpvec, mpp, i)
-		stop_waiter_thread(mpp, vecs);
+	if (!poll_dmevents) {
+		vector_foreach_slot(vecs->mpvec, mpp, i)
+			stop_waiter_thread(mpp, vecs);
+	}
+	else
+		unwatch_all_dmevents();
 
 	remove_maps(vecs);
 }
@@ -351,7 +369,7 @@ retry:
 	dm_lib_release();
 
 fail:
-	if (new_map && (retries < 0 || start_waiter_thread(mpp, vecs))) {
+	if (new_map && (retries < 0 || wait_for_events(mpp, vecs))) {
 		condlog(0, "%s: failed to create new map", mpp->alias);
 		remove_map(mpp, vecs, 1);
 		return 1;
@@ -870,7 +888,7 @@ retry:
 
 	if ((mpp->action == ACT_CREATE ||
 	     (mpp->action == ACT_NOTHING && start_waiter && !mpp->waiter)) &&
-	    start_waiter_thread(mpp, vecs))
+	    wait_for_events(mpp, vecs))
 			goto fail_map;
 
 	/*
@@ -2173,7 +2191,7 @@ configure (struct vectors * vecs)
 	 * start dm event waiter threads for these new maps
 	 */
 	vector_foreach_slot(vecs->mpvec, mpp, i) {
-		if (start_waiter_thread(mpp, vecs)) {
+		if (wait_for_events(mpp, vecs)) {
 			remove_map(mpp, vecs, 1);
 			i--;
 			continue;
@@ -2414,7 +2432,7 @@ set_oom_adj (void)
 static int
 child (void * param)
 {
-	pthread_t check_thr, uevent_thr, uxlsnr_thr, uevq_thr;
+	pthread_t check_thr, uevent_thr, uxlsnr_thr, uevq_thr, dmevent_thr;
 	pthread_attr_t log_attr, misc_attr, uevent_attr;
 	struct vectors * vecs;
 	struct multipath * mpp;
@@ -2476,6 +2494,8 @@ child (void * param)
 		goto failed;
 	}
 
+	if (poll_dmevents)
+		poll_dmevents = dmevent_poll_supported();
 	setlogmask(LOG_UPTO(conf->verbosity + 3));
 
 	envp = getenv("LimitNOFILE");
@@ -2541,6 +2561,19 @@ child (void * param)
 	post_config_state(DAEMON_CONFIGURE);
 
 	init_path_check_interval(vecs);
+
+	if (poll_dmevents) {
+		if (alloc_dmevent_waiter(vecs)) {
+			condlog(0, "failed to allocate dmevents waiter info");
+			goto failed;
+		}
+		if ((rc = pthread_create(&dmevent_thr, &misc_attr,
+					 wait_dmevents, NULL))) {
+			condlog(0, "failed to create dmevent waiter thread: %d",
+				rc);
+			goto failed;
+		}
+	}
 
 	/*
 	 * Start uevent listener early to catch events
@@ -2615,11 +2648,15 @@ child (void * param)
 	pthread_cancel(uevent_thr);
 	pthread_cancel(uxlsnr_thr);
 	pthread_cancel(uevq_thr);
+	if (poll_dmevents)
+		pthread_cancel(dmevent_thr);
 
 	pthread_join(check_thr, NULL);
 	pthread_join(uevent_thr, NULL);
 	pthread_join(uxlsnr_thr, NULL);
 	pthread_join(uevq_thr, NULL);
+	if (poll_dmevents)
+		pthread_join(dmevent_thr, NULL);
 
 	stop_io_err_stat_thread();
 
@@ -2634,6 +2671,8 @@ child (void * param)
 
 	cleanup_checkers();
 	cleanup_prio();
+	if (poll_dmevents)
+		free_dmevent_waiter();
 
 	dm_lib_release();
 	dm_lib_exit();
@@ -2765,7 +2804,7 @@ main (int argc, char *argv[])
 	udev = udev_new();
 	libmp_udev_set_sync_support(0);
 
-	while ((arg = getopt(argc, argv, ":dsv:k::Bn")) != EOF ) {
+	while ((arg = getopt(argc, argv, ":dsv:k::Bniw")) != EOF ) {
 		switch(arg) {
 		case 'd':
 			foreground = 1;
@@ -2798,6 +2837,9 @@ main (int argc, char *argv[])
 			break;
 		case 'n':
 			ignore_new_devs = 1;
+			break;
+		case 'w':
+			poll_dmevents = 0;
 			break;
 		default:
 			fprintf(stderr, "Invalid argument '-%c'\n",
