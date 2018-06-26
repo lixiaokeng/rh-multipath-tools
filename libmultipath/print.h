@@ -117,6 +117,8 @@ int snprint_host_wwnn (char *, size_t, struct path *);
 int snprint_host_wwpn (char *, size_t, struct path *);
 int snprint_tgt_wwnn (char *, size_t, struct path *);
 int snprint_tgt_wwpn (char *, size_t, struct path *);
+#define PROTOCOL_BUF_SIZE sizeof("scsi:unspec")
+int snprint_path_protocol(char *, size_t, struct path *);
 
 void print_multipath_topology (struct multipath * mpp, int verbosity);
 void print_path (struct path * pp, char * style);
