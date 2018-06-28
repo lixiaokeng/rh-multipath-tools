@@ -1518,6 +1518,19 @@ int snprint_blacklist_report(struct config *conf, char *buff, int len)
 
 	if ((len - fwd - threshold) <= 0)
 		return len;
+	fwd += snprintf(buff + fwd, len - fwd, "protocol rules:\n"
+					       "- blacklist:\n");
+	if (!snprint_blacklist_group(buff, len, &fwd, &conf->blist_protocol))
+		return len;
+
+	if ((len - fwd - threshold) <= 0)
+		return len;
+	fwd += snprintf(buff + fwd, len - fwd, "- exceptions:\n");
+	if (snprint_blacklist_group(buff, len, &fwd, &conf->elist_protocol) == 0)
+		return len;
+
+	if ((len - fwd - threshold) <= 0)
+		return len;
 	fwd += snprintf(buff + fwd, len - fwd, "wwid rules:\n"
 					       "- blacklist:\n");
 	if (snprint_blacklist_group(buff, len, &fwd, &conf->blist_wwid) == 0)
@@ -1584,6 +1597,15 @@ int snprint_blacklist(struct config *conf, char *buff, int len)
 	}
 	vector_foreach_slot (conf->blist_property, ble, i) {
 		kw = find_keyword(conf->keywords, rootkw->sub, "property");
+		if (!kw)
+			return 0;
+		fwd += snprint_keyword(buff + fwd, len - fwd, "\t%k %v\n",
+				       kw, ble);
+		if (fwd >= len)
+			return len;
+	}
+	vector_foreach_slot (conf->blist_protocol, ble, i) {
+		kw = find_keyword(conf->keywords, rootkw->sub, "protocol");
 		if (!kw)
 			return 0;
 		fwd += snprint_keyword(buff + fwd, len - fwd, "\t%k %v\n",
@@ -1660,6 +1682,15 @@ int snprint_blacklist_except(struct config *conf, char *buff, int len)
 	}
 	vector_foreach_slot (conf->elist_property, ele, i) {
 		kw = find_keyword(conf->keywords, rootkw->sub, "property");
+		if (!kw)
+			return 0;
+		fwd += snprint_keyword(buff + fwd, len - fwd, "\t%k %v\n",
+				       kw, ele);
+		if (fwd >= len)
+			return len;
+	}
+	vector_foreach_slot (conf->elist_protocol, ele, i) {
+		kw = find_keyword(conf->keywords, rootkw->sub, "protocol");
 		if (!kw)
 			return 0;
 		fwd += snprint_keyword(buff + fwd, len - fwd, "\t%k %v\n",

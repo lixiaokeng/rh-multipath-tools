@@ -1084,6 +1084,10 @@ The \fIWorld Wide Identification\fR of a device.
 .B property
 Regular expression of the udev property to be excluded.
 .TP
+.B protocol
+Regular expression of the protocol to be excluded. See below for a
+list of recognized protocols
+.TP
 .B device
 Subsection for the device description. This subsection recognizes the
 .B vendor
@@ -1091,6 +1095,13 @@ and
 .B product
 keywords. For a full description of these keywords please see the
 \fIdevices\fR section description.
+.LP
+The protocol strings that multipath recognizes are \fIscsi:fcp\fR,
+\fIscsi:spi\fR, \fIscsi:ssa\fR, \fIscsi:sbp\fR, \fIscsi:srp\fR,
+\fIscsi:iscsi\fR, \fIscsi:sas\fR, \fIscsi:adt\fR, \fIscsi:ata\fR,
+\fIscsi:unspec\fR, \fIccw\fR, \fIcciss\fR, \fInvme\fR, and \fIundef\fR.
+The protocol that a path is using can be viewed by running
+\fBmultipathd show paths format "%d %P"\fR
 .
 .
 .\" ----------------------------------------------------------------------------
@@ -1114,6 +1125,10 @@ The \fIWorld Wide Identification\fR of a device.
 .TP
 .B property
 Regular expression of the udev property to be whitelisted.
+.TP
+.B protocol
+Regular expression of the protocol to be whitelisted. See the
+\fBblacklist section\fR for a list of recognized protocols
 .TP
 .B device
 Subsection for the device description. This subsection recognizes the
