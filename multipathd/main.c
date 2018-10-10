@@ -2975,6 +2975,7 @@ main (int argc, char *argv[])
 			logsink = -1;
 			break;
 		case 'k':
+			logsink = 0;
 			conf = load_config(DEFAULT_CONFIGFILE);
 			if (!conf)
 				exit(1);
@@ -3004,6 +3005,7 @@ main (int argc, char *argv[])
 		char * s = cmd;
 		char * c = s;
 
+		logsink = 0;
 		conf = load_config(DEFAULT_CONFIGFILE);
 		if (!conf)
 			exit(1);
