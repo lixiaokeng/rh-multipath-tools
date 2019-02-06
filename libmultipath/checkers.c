@@ -295,7 +295,7 @@ const char *checker_message(const struct checker *c)
 {
 	int id;
 
-	if (!c || c->msgid < 0 ||
+	if (!c || !c->cls || c->msgid < 0 ||
 	    (c->msgid >= CHECKER_GENERIC_MSGTABLE_SIZE &&
 	     c->msgid < CHECKER_FIRST_MSGID))
 		goto bad_id;

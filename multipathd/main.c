@@ -2017,8 +2017,10 @@ check_path (struct vectors * vecs, struct path * pp, int ticks)
 	}
 
 	if (newstate == PATH_WILD || newstate == PATH_UNCHECKED) {
-		condlog(2, "%s: unusable path - checker failed", pp->dev);
-		LOG_MSG(2, verbosity, pp);
+		condlog(2, "%s: unusable path (%s) - checker failed", pp->dev,
+			checker_state_name(newstate));
+		if (pp->mpp && checker_selected(&pp->checker))
+			LOG_MSG(2, verbosity, pp);
 		conf = get_multipath_config();
 		pthread_cleanup_push(put_multipath_config, conf);
 		pathinfo(pp, conf, 0);
