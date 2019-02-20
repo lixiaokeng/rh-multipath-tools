@@ -1211,9 +1211,9 @@ uev_update_path (struct uevent *uev, struct vectors * vecs)
 			goto out;
 
 		strcpy(wwid, pp->wwid);
-		get_uid(pp, pp->state, uev->udev);
+		rc = get_uid(pp, pp->state, uev->udev);
 
-		if (strncmp(wwid, pp->wwid, WWID_SIZE) != 0) {
+		if (rc == 0 && strncmp(wwid, pp->wwid, WWID_SIZE) != 0) {
 			condlog(0, "%s: path wwid changed from '%s' to '%s'. %s",
 				uev->kernel, wwid, pp->wwid,
 				(disable_changed_wwids ? "disallowing" :
@@ -1229,7 +1229,8 @@ uev_update_path (struct uevent *uev, struct vectors * vecs)
 				goto out;
 			}
 		} else {
-			pp->wwid_changed = 0;
+			if (rc == 0)
+				pp->wwid_changed = 0;
 			udev_device_unref(pp->udev);
 			pp->udev = udev_device_ref(uev->udev);
 			conf = get_multipath_config();
@@ -1782,6 +1783,7 @@ int update_prio(struct path *pp, int refresh_all)
 
 int update_path_groups(struct multipath *mpp, struct vectors *vecs, int refresh)
 {
+	condlog(2, "%s: updating path groups for priority change", mpp->alias);
 	if (reload_map(vecs, mpp, refresh, 1))
 		return 1;
 
