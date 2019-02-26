@@ -1211,9 +1211,10 @@ uev_update_path (struct uevent *uev, struct vectors * vecs)
 			goto out;
 
 		strcpy(wwid, pp->wwid);
-		rc = get_uid(pp, pp->state, uev->udev);
+		get_uid(pp, pp->state, uev->udev);
 
-		if (rc == 0 && strncmp(wwid, pp->wwid, WWID_SIZE) != 0) {
+		if (strlen(pp->wwid) &&
+		    strncmp(wwid, pp->wwid, WWID_SIZE) != 0) {
 			condlog(0, "%s: path wwid changed from '%s' to '%s'. %s",
 				uev->kernel, wwid, pp->wwid,
 				(disable_changed_wwids ? "disallowing" :
@@ -1229,8 +1230,10 @@ uev_update_path (struct uevent *uev, struct vectors * vecs)
 				goto out;
 			}
 		} else {
-			if (rc == 0)
+			if (strlen(pp->wwid))
 				pp->wwid_changed = 0;
+			else
+				strcpy(pp->wwid, wwid);
 			udev_device_unref(pp->udev);
 			pp->udev = udev_device_ref(uev->udev);
 			conf = get_multipath_config();
