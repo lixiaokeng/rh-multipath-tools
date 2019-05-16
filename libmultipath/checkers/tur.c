@@ -290,7 +290,12 @@ static void *tur_thread(void *ctx)
 
 static void tur_timeout(struct timespec *tsp)
 {
-	clock_gettime(CLOCK_MONOTONIC, tsp);
+	if (clock_gettime(CLOCK_MONOTONIC, tsp) != 0) {
+		/* can't get time. clear tsp to not wait */
+		tsp->tv_sec = 0;
+		tsp->tv_nsec = 0;
+		return;
+	}
 	tsp->tv_nsec += 1000 * 1000; /* 1 millisecond */
 	normalize_timespec(tsp);
 }
@@ -300,8 +305,12 @@ static void tur_set_async_timeout(struct checker *c)
 	struct tur_checker_context *ct = c->context;
 	struct timespec now;
 
-	clock_gettime(CLOCK_MONOTONIC, &now);
-	ct->time = now.tv_sec + c->timeout;
+	if (clock_gettime(CLOCK_MONOTONIC, &now) != 0)
+		/* can't get time. clear time to always timeout on
+		 * next path check */
+		ct->time = 0;
+	else
+		ct->time = now.tv_sec + c->timeout;
 }
 
 static int tur_check_async_timeout(struct checker *c)
@@ -309,7 +318,9 @@ static int tur_check_async_timeout(struct checker *c)
 	struct tur_checker_context *ct = c->context;
 	struct timespec now;
 
-	clock_gettime(CLOCK_MONOTONIC, &now);
+	if (clock_gettime(CLOCK_MONOTONIC, &now) != 0)
+		/* can't get time. assume we've timed out */
+		return 1;
 	return (now.tv_sec > ct->time);
 }
 
