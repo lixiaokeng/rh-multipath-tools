@@ -103,6 +103,11 @@ out:
 	return 1;
 }
 
+int libcheck_mp_init(struct checker * c)
+{
+	return 0;
+}
+
 void libcheck_free (struct checker * c)
 {
 	struct directio_context * ct = (struct directio_context *)c->context;

@@ -79,6 +79,11 @@ int libcheck_init (struct checker * c)
 	return 0;
 }
 
+int libcheck_mp_init(struct checker * c)
+{
+	return 0;
+}
+
 static void cleanup_context(struct tur_checker_context *ct)
 {
 	pthread_mutex_destroy(&ct->lock);

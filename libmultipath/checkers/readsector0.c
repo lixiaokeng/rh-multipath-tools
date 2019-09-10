@@ -15,6 +15,11 @@ int libcheck_init (struct checker * c)
 	return 0;
 }
 
+int libcheck_mp_init(struct checker * c)
+{
+	return 0;
+}
+
 void libcheck_free (struct checker * c)
 {
 	return;
