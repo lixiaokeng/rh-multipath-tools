@@ -129,7 +129,7 @@ static int _init_foreign(const char *multipath_dir, const char *enable)
 	char pathbuf[PATH_MAX];
 	struct dirent **di;
 	struct scandir_result sr;
-	int r, i;
+	int r, i, ret = 0;
 	regex_t *enable_re = NULL;
 
 	foreigns = vector_alloc();
@@ -157,13 +157,15 @@ static int _init_foreign(const char *multipath_dir, const char *enable)
 	if (r == 0) {
 		condlog(3, "%s: no foreign multipath libraries found",
 			__func__);
-		return 0;
+		ret = 0;
+		goto out;
 	} else if (r < 0) {
 		r = errno;
 		condlog(1, "%s: error %d scanning foreign multipath libraries",
 			__func__, r);
 		_cleanup_foreign();
-		return -r;
+		ret = -r;
+		goto out;
 	}
 
 	sr.di = di;
@@ -250,8 +252,9 @@ static int _init_foreign(const char *multipath_dir, const char *enable)
 		free_foreign(fgn);
 	}
 	pthread_cleanup_pop(1); /* free_scandir_result */
+out:
 	pthread_cleanup_pop(1); /* free_pre */
-	return 0;
+	return ret;
 }
 
 int init_foreign(const char *multipath_dir, const char *enable)
