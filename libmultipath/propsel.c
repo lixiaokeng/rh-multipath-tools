@@ -1203,3 +1203,27 @@ out:
 		origin);
 	return 0;
 }
+
+int select_vpd_vendor_pg (struct config *conf, struct path *pp)
+{
+	const char *origin;
+
+	pp_set_hwe(vpd_vendor_pg);
+	pp_set_default(vpd_vendor_pg, 0);
+out:
+	condlog(3, "%s: vpd_vendor_pg = 0x%x %s", pp->dev, pp->vpd_vendor_pg,
+		origin);
+	return 0;
+}
+
+int select_vpd_vendor_id (struct config *conf, struct path *pp)
+{
+	const char *origin;
+
+	pp_set_hwe(vpd_vendor_id);
+	pp_set_default(vpd_vendor_id, 0);
+out:
+	condlog(3, "%s: vpd_vendor_id = 0x%x %s", pp->dev, pp->vpd_vendor_id,
+		origin);
+	return 0;
+}

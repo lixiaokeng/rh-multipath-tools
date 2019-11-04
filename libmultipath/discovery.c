@@ -1104,6 +1104,30 @@ parse_vpd_pg83(const unsigned char *in, size_t in_len,
 }
 
 static int
+parse_vpd_c0_hp3par(const unsigned char *in, size_t in_len,
+		    char *out, size_t out_len)
+{
+	size_t len;
+
+	memset(out, 0x0, out_len);
+	if (in_len <= 4 || (in[4] > 3 && in_len < 44)) {
+		condlog(3, "HP/3PAR vendor specific VPD page length too short: %lu", in_len);
+		return -EINVAL;
+	}
+	if (in[4] <= 3) /* revision must be > 3 to have Vomlume Name */
+		return -ENODATA;
+	len = get_unaligned_be32(&in[40]);
+	if (len > out_len || len + 44 > in_len) {
+		condlog(3, "HP/3PAR vendor specific Volume name too long: %lu",
+			len);
+		return -EINVAL;
+	}
+	memcpy(out, &in[44], len);
+	out[out_len - 1] = '\0';
+	return len;
+}
+
+static int
 get_vpd_sysfs (struct udev_device *parent, int pg, char * str, int maxlen)
 {
 	int len, buff_len;
@@ -1170,7 +1194,9 @@ get_vpd_sgio (int fd, int pg, int vend_id, char * str, int maxlen)
 			len = (buff_len <= maxlen)? buff_len : maxlen;
 			memcpy (str, buff, len);
 		}
-	} else
+	} else if (pg == 0xc0 && vend_id == VPD_VP_HP3PAR)
+		len = parse_vpd_c0_hp3par(buff, buff_len, str, maxlen);
+	else
 		len = -ENOSYS;
 
 	return len;
@@ -1543,6 +1569,12 @@ scsi_ioctl_pathinfo (struct path * pp, struct config *conf, int mask)
 
 	if (!(mask & DI_SERIAL))
 		return;
+
+	select_vpd_vendor_pg(conf, pp);
+	select_vpd_vendor_id(conf, pp);
+
+	if (pp->vpd_vendor_pg != 0 && get_vpd_sgio(pp->fd, pp->vpd_vendor_pg, pp->vpd_vendor_id, pp->vpd_data, sizeof(pp->vpd_data)) < 0)
+		condlog(3, "%s: failed to get extra vpd data", pp->dev);
 
 	parent = pp->udev;
 	while (parent) {

@@ -87,6 +87,8 @@ struct hwentry {
 	int max_sectors_kb;
 	int ghost_delay;
 	int all_tg_pt;
+	int vpd_vendor_pg;
+	int vpd_vendor_id;
 	char * bl_product;
 };
 
