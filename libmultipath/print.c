@@ -29,6 +29,7 @@
 #include "uevent.h"
 #include "debug.h"
 #include "discovery.h"
+#include "util.h"
 
 #define MAX(x,y) (((x) > (y)) ? (x) : (y))
 #define MIN(x,y) (((x) > (y)) ? (y) : (x))
@@ -2028,7 +2029,7 @@ int snprint_devices(struct config *conf, char * buff, int len,
 
 		devptr = devpath + 11;
 		*devptr = '\0';
-		strncat(devptr, blkdev->d_name, PATH_MAX-12);
+		strlcpy(devptr, blkdev->d_name, PATH_MAX-11);
 		if (stat(devpath, &statbuf) < 0)
 			continue;
 

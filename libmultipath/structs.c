@@ -20,6 +20,12 @@
 #include "prioritizers/alua_spc3.h"
 #include "dm-generic.h"
 
+/*
+ * _FIND_MULTIPATHS_F must have the same value as YNU_YES.
+ * Generate a compile time error if that isn't the case.
+ */
+char ___error1___[-(_FIND_MULTIPATHS_F != YNU_YES)];
+
 struct adapter_group *
 alloc_adaptergroup(void)
 {

@@ -102,11 +102,6 @@ enum yes_no_undef_states {
 #define _FIND_MULTIPATHS_F (1 << 1)
 #define _FIND_MULTIPATHS_I (1 << 2)
 #define _FIND_MULTIPATHS_N (1 << 3)
-/*
- * _FIND_MULTIPATHS_F must have the same value as YNU_YES.
- * Generate a compile time error if that isn't the case.
- */
-char ___error1___[-(_FIND_MULTIPATHS_F != YNU_YES)];
 
 #define find_multipaths_on(conf) \
 	(!!((conf)->find_multipaths & _FIND_MULTIPATHS_F))

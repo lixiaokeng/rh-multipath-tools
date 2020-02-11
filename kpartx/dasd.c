@@ -188,7 +188,7 @@ read_dasd_pt(int fd, struct slice all, struct slice *sp, int ns)
 		goto out;
 	}
 
-	if ((!info.FBA_layout) && (!strcmp(info.type, "ECKD")))
+	if ((!info.FBA_layout) && (!strncmp(info.type, "ECKD", 4)))
 		memcpy (&vlabel, data, sizeof(vlabel));
 	else {
 		bzero(&vlabel,4);
@@ -218,7 +218,7 @@ read_dasd_pt(int fd, struct slice all, struct slice *sp, int ns)
 		sp[0].size  = size - sp[0].start;
 		retval = 1;
 	} else if ((strncmp(type, "VOL1", 4) == 0) &&
-		(!info.FBA_layout) && (!strcmp(info.type, "ECKD"))) {
+		(!info.FBA_layout) && (!strncmp(info.type, "ECKD",4))) {
 		/*
 		 * New style VOL1 labeled disk
 		 */
@@ -267,7 +267,7 @@ read_dasd_pt(int fd, struct slice all, struct slice *sp, int ns)
 			if (vlabel.ldl_version == 0xf2) {
 				fmt_size = sectors512(vlabel.formatted_blocks,
 						      blocksize);
-			} else if (!strcmp(info.type, "ECKD")) {
+			} else if (!strncmp(info.type, "ECKD",4)) {
 				/* formatted w/o large volume support */
 				fmt_size = geo.cylinders * geo.heads
 					* geo.sectors * (blocksize >> 9);
