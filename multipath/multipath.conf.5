@@ -286,6 +286,19 @@ The default is: \fB<unset>\fR
 .
 .
 .TP
+.B ignore_udev_uid
+Setting this option to yes will force multipath to ignore the the uid_attrs
+and uid_attribute settings, and generate the WWID by the \fIsysfs\fR
+method. This will cause devices that cannot get their WWID from the standard
+locations for their device type to not get a WWID; see \fBWWID generation\fR
+below.
+.RS
+.TP
+The default is: \fBno\fR
+.RE
+.
+.
+.TP
 .B prio
 The name of the path priority routine. The specified routine
 should return a numeric value specifying the relative priority

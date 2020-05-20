@@ -179,7 +179,7 @@ uevent_need_merge(void)
 	bool need_merge = false;
 
 	conf = get_multipath_config();
-	if (VECTOR_SIZE(&conf->uid_attrs) > 0)
+	if (!conf->ignore_udev_uid && VECTOR_SIZE(&conf->uid_attrs) > 0)
 		need_merge = true;
 	put_multipath_config(conf);
 
