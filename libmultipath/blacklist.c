@@ -311,14 +311,14 @@ filter_device (vector blist, vector elist, char * vendor, char * product,
 }
 
 int
-filter_devnode (vector blist, vector elist, char * dev)
+filter_devnode (struct config *conf, char * dev)
 {
 	int r = MATCH_NOTHING;
 
 	if (dev) {
-		if (_blacklist_exceptions(elist, dev))
+		if (_blacklist_exceptions(conf->elist_devnode, dev))
 			r = MATCH_DEVNODE_BLIST_EXCEPT;
-		else if (_blacklist(blist, dev))
+		else if (_blacklist(conf->blist_devnode, dev))
 			r = MATCH_DEVNODE_BLIST;
 	}
 
@@ -369,7 +369,7 @@ filter_path (struct config * conf, struct path * pp)
 	r = filter_property(conf, pp->udev, 3, pp->uid_attribute);
 	if (r > 0)
 		return r;
-	r = filter_devnode(conf->blist_devnode, conf->elist_devnode, pp->dev);
+	r = filter_devnode(conf, pp->dev);
 	if (r > 0)
 		return r;
 	r = filter_device(conf->blist_device, conf->elist_device,

@@ -202,8 +202,7 @@ uevent_can_discard(struct uevent *uev)
 	 */
 	conf = get_multipath_config();
 	pthread_cleanup_push(put_multipath_config, conf);
-	if (filter_devnode(conf->blist_devnode, conf->elist_devnode,
-			   uev->kernel) > 0)
+	if (filter_devnode(conf, uev->kernel) > 0)
 		invalid = 1;
 	pthread_cleanup_pop(1);
 

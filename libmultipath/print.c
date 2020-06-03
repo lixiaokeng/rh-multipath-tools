@@ -2071,8 +2071,7 @@ int snprint_devices(struct config *conf, char * buff, int len,
 				blkdev->d_name);
 		pp = find_path_by_dev(vecs->pathvec, blkdev->d_name);
 		if (!pp) {
-			r = filter_devnode(conf->blist_devnode,
-					   conf->elist_devnode, blkdev->d_name);
+			r = filter_devnode(conf, blkdev->d_name);
 			if (r > 0)
 				fwd += snprintf(buff + fwd, len - fwd,
 						" devnode blacklisted, unmonitored");

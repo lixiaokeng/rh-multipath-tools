@@ -138,24 +138,28 @@ static int reset_blists(void **state)
 
 static void test_devnode_blacklist(void **state)
 {
+	conf.blist_devnode = blist_devnode_sdb;
 	expect_condlog(3, "sdb: device node name blacklisted\n");
-	assert_int_equal(filter_devnode(blist_devnode_sdb, NULL, "sdb"),
+	assert_int_equal(filter_devnode(&conf, "sdb"),
 			 MATCH_DEVNODE_BLIST);
 }
 
 static void test_devnode_whitelist(void **state)
 {
+	conf.blist_devnode = blist_all;
+	conf.elist_devnode = blist_devnode_sdb;
 	expect_condlog(3, "sdb: device node name whitelisted\n");
-	assert_int_equal(filter_devnode(blist_all, blist_devnode_sdb, "sdb"),
+	assert_int_equal(filter_devnode(&conf, "sdb"),
 			 MATCH_DEVNODE_BLIST_EXCEPT);
 	expect_condlog(3, "sdc: device node name blacklisted\n");
-	assert_int_equal(filter_devnode(blist_all, blist_devnode_sdb, "sdc"),
+	assert_int_equal(filter_devnode(&conf, "sdc"),
 			 MATCH_DEVNODE_BLIST);
 }
 
 static void test_devnode_missing(void **state)
 {
-	assert_int_equal(filter_devnode(blist_devnode_sdb, NULL, "sdc"),
+	conf.blist_devnode = blist_devnode_sdb;
+	assert_int_equal(filter_devnode(&conf, "sdc"),
 			 MATCH_NOTHING);
 }
 
@@ -481,9 +485,9 @@ static void test_filter_path_whitelist_wwid(void **state)
 int test_blacklist(void)
 {
 	const struct CMUnitTest tests[] = {
-		cmocka_unit_test(test_devnode_blacklist),
-		cmocka_unit_test(test_devnode_whitelist),
-		cmocka_unit_test(test_devnode_missing),
+		test_and_reset(test_devnode_blacklist),
+		test_and_reset(test_devnode_whitelist),
+		test_and_reset(test_devnode_missing),
 		cmocka_unit_test(test_device_blacklist),
 		cmocka_unit_test(test_device_whitelist),
 		cmocka_unit_test(test_device_missing),

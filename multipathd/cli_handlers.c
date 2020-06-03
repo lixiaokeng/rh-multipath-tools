@@ -705,8 +705,7 @@ cli_add_path (void * v, char ** reply, int * len, void * data)
 	condlog(2, "%s: add path (operator)", param);
 	conf = get_multipath_config();
 	pthread_cleanup_push(put_multipath_config, conf);
-	if (filter_devnode(conf->blist_devnode, conf->elist_devnode,
-			   param) > 0)
+	if (filter_devnode(conf, param) > 0)
 		invalid = 1;
 	pthread_cleanup_pop(1);
 	if (invalid)

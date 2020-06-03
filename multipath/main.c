@@ -565,8 +565,7 @@ configure (struct config *conf, enum mpath_cmds cmd,
 	if (dev && (dev_type == DEV_DEVNODE ||
 		    dev_type == DEV_UEVENT) &&
 	    cmd != CMD_REMOVE_WWID &&
-	    (filter_devnode(conf->blist_devnode,
-			    conf->elist_devnode, dev) > 0)) {
+	    (filter_devnode(conf, dev) > 0)) {
 		goto out;
 	}
 
