@@ -632,6 +632,7 @@ free_config (struct config * conf)
 	if (conf->config_dir)
 		FREE(conf->config_dir);
 
+	free_blacklist(conf->elist_devnode_default);
 	free_blacklist(conf->blist_devnode);
 	free_blacklist(conf->blist_wwid);
 	free_blacklist(conf->blist_property);
@@ -802,6 +803,10 @@ load_config (char * file)
 		conf->checkint = conf->max_checkint;
 	condlog(3, "polling interval: %d, max: %d",
 		conf->checkint, conf->max_checkint);
+
+	conf->elist_devnode_default = vector_alloc();
+	if (!conf->elist_devnode_default)
+		goto out;
 
 	if (conf->blist_devnode == NULL) {
 		conf->blist_devnode = vector_alloc();

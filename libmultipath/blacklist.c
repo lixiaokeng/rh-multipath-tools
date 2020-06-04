@@ -192,16 +192,10 @@ setup_default_blist (struct config * conf)
 	char * str;
 	int i;
 
-	str = STRDUP("^(ram|zram|raw|loop|fd|md|dm-|sr|scd|st|dcssblk)[0-9]");
+	str = STRDUP("^(sd[a-z]|dasd[a-z]|nvme[0-9])");
 	if (!str)
 		return 1;
-	if (store_ble(conf->blist_devnode, str, ORIGIN_DEFAULT))
-		return 1;
-
-	str = STRDUP("^(td|hd|vd)[a-z]");
-	if (!str)
-		return 1;
-	if (store_ble(conf->blist_devnode, str, ORIGIN_DEFAULT))
+	if (store_ble(conf->elist_devnode_default, str, ORIGIN_DEFAULT))
 		return 1;
 
 	str = STRDUP("(SCSI_IDENT_|ID_WWN)");
@@ -318,6 +312,9 @@ filter_devnode (struct config *conf, char * dev)
 	if (dev) {
 		if (_blacklist_exceptions(conf->elist_devnode, dev))
 			r = MATCH_DEVNODE_BLIST_EXCEPT;
+		else if (!_blacklist_exceptions(conf->elist_devnode_default,
+						dev))
+			r = MATCH_DEVNODE_BLIST;
 		else if (_blacklist(conf->blist_devnode, dev))
 			r = MATCH_DEVNODE_BLIST;
 	}

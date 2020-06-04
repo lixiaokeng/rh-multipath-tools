@@ -60,6 +60,8 @@ __wrap_udev_list_entry_get_name(struct udev_list_entry *list_entry)
 	return *(const char **)list_entry;
 }
 
+vector elist_devnode_default;
+vector elist_property_default;
 vector blist_devnode_sdb;
 vector blist_all;
 vector blist_device_foo_bar;
@@ -70,6 +72,20 @@ vector blist_property_wwn;
 
 static int setup(void **state)
 {
+	struct config conf;
+
+	memset(&conf, 0, sizeof(conf));
+	conf.elist_devnode_default = vector_alloc();
+	if (!conf.elist_devnode_default)
+		return -1;
+	conf.elist_property = vector_alloc();
+	if (!conf.elist_property)
+		return -1;
+	if (setup_default_blist(&conf) != 0)
+		return -1;
+	elist_property_default = conf.elist_property;
+	elist_devnode_default = conf.elist_devnode_default;
+
 	blist_devnode_sdb = vector_alloc();
 	if (!blist_devnode_sdb ||
 	    store_ble(blist_devnode_sdb, strdup("sdb"), ORIGIN_CONFIG))
@@ -111,6 +127,8 @@ static int setup(void **state)
 
 static int teardown(void **state)
 {
+	free_blacklist(elist_devnode_default);
+	free_blacklist(elist_property_default);
 	free_blacklist(blist_devnode_sdb);
 	free_blacklist(blist_all);
 	free_blacklist_device(blist_device_foo_bar);
@@ -123,6 +141,7 @@ static int teardown(void **state)
 
 static int reset_blists(void **state)
 {
+	conf.elist_devnode_default = NULL;
 	conf.blist_devnode = NULL;
 	conf.blist_wwid = NULL;
 	conf.blist_property = NULL;
@@ -159,8 +178,16 @@ static void test_devnode_whitelist(void **state)
 static void test_devnode_missing(void **state)
 {
 	conf.blist_devnode = blist_devnode_sdb;
+	conf.elist_devnode_default = elist_devnode_default;
 	assert_int_equal(filter_devnode(&conf, "sdc"),
 			 MATCH_NOTHING);
+	assert_int_equal(filter_devnode(&conf, "nvme0n1"),
+			 MATCH_NOTHING);
+	assert_int_equal(filter_devnode(&conf, "dasda"),
+			 MATCH_NOTHING);
+	expect_condlog(3, "hda: device node name blacklisted\n");
+	assert_int_equal(filter_devnode(&conf, "hda"),
+			 MATCH_DEVNODE_BLIST);
 }
 
 static void test_device_blacklist(void **state)
@@ -302,6 +329,7 @@ static void test_filter_path_devnode(void **state)
 	/* always must include property elist, to avoid "missing property"
 	 * blacklisting */
 	conf.elist_property = blist_property_wwn;
+	conf.elist_devnode_default = elist_devnode_default;
 	conf.blist_devnode = blist_devnode_sdb;
 	expect_condlog(3, "sdb: udev property ID_WWN whitelisted\n");
 	expect_condlog(3, "sdb: device node name blacklisted\n");
@@ -313,6 +341,7 @@ static void test_filter_path_device(void **state)
 	/* always must include property elist, to avoid "missing property"
 	 * blacklisting */
 	conf.elist_property = blist_property_wwn;
+	conf.elist_devnode_default = elist_devnode_default;
 	conf.blist_device = blist_device_foo_bar;
 	expect_condlog(3, "sdb: udev property ID_WWN whitelisted\n");
 	expect_condlog(3, "sdb: (foo:bar) vendor/product blacklisted\n");
@@ -322,6 +351,7 @@ static void test_filter_path_device(void **state)
 static void test_filter_path_protocol(void **state)
 {
 	conf.elist_property = blist_property_wwn;
+	conf.elist_devnode_default = elist_devnode_default;
 	conf.blist_protocol = blist_protocol_fcp;
 	expect_condlog(3, "sdb: udev property ID_WWN whitelisted\n");
 	expect_condlog(3, "sdb: protocol scsi:fcp blacklisted\n");
@@ -331,6 +361,7 @@ static void test_filter_path_protocol(void **state)
 static void test_filter_path_wwid(void **state)
 {
 	conf.elist_property = blist_property_wwn;
+	conf.elist_devnode_default = elist_devnode_default;
 	conf.blist_wwid = blist_wwid_xyzzy;
 	expect_condlog(3, "sdb: udev property ID_WWN whitelisted\n");
 	expect_condlog(3, "sdb: wwid xyzzy blacklisted\n");
@@ -377,6 +408,7 @@ static void test_filter_path_missing1(void **state)
 static void test_filter_path_missing2(void **state)
 {
 	conf.elist_property = blist_property_wwn;
+	conf.elist_devnode_default = elist_devnode_default;
 	conf.blist_devnode = blist_devnode_sdb;
 	conf.blist_device = blist_device_foo_bar;
 	conf.blist_protocol = blist_protocol_fcp;
@@ -391,6 +423,7 @@ static void test_filter_path_missing2(void **state)
 static void test_filter_path_missing3(void **state)
 {
 	conf.blist_property = blist_property_wwn;
+	conf.elist_devnode_default = elist_devnode_default;
 	conf.blist_devnode = blist_devnode_sdb;
 	conf.blist_device = blist_device_foo_bar;
 	conf.blist_protocol = blist_protocol_fcp;

@@ -1702,7 +1702,14 @@ int snprint_blacklist_report(struct config *conf, char *buff, int len)
 	if ((len - fwd - threshold) <= 0)
 		return len;
 	fwd += snprintf(buff + fwd, len - fwd, "device node rules:\n"
-					       "- blacklist:\n");
+					       "- allowed:\n");
+	if (!snprint_blacklist_group(buff, len, &fwd,
+				     &conf->elist_devnode_default))
+		return len;
+
+	if ((len - fwd - threshold) <= 0)
+		return len;
+	fwd += snprintf(buff + fwd, len - fwd, "- blacklist:\n");
 	if (!snprint_blacklist_group(buff, len, &fwd, &conf->blist_devnode))
 		return len;
 

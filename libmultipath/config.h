@@ -223,6 +223,7 @@ struct config {
 	vector blist_device;
 	vector blist_property;
 	vector blist_protocol;
+	vector elist_devnode_default;
 	vector elist_devnode;
 	vector elist_wwid;
 	vector elist_device;
