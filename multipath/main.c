@@ -825,6 +825,9 @@ int delegate_to_multipathd(enum mpath_cmds cmd,
 	*p = '\0';
 	n = sizeof(command);
 
+	if (conf->skip_delegate)
+		return NOT_DELEGATED;
+
 	if (cmd == CMD_CREATE && conf->force_reload == FORCE_RELOAD_YES) {
 		p += snprintf(p, n, "reconfigure");
 	}
@@ -923,7 +926,7 @@ main (int argc, char *argv[])
 	multipath_conf = conf;
 	conf->retrigger_tries = 0;
 	conf->force_sync = 1;
-	while ((arg = getopt(argc, argv, ":aAdcChl::FfM:v:p:b:BrR:itTquUwW")) != EOF ) {
+	while ((arg = getopt(argc, argv, ":aAdDcChl::FfM:v:p:b:BrR:itTquUwW")) != EOF ) {
 		switch(arg) {
 		case 1: printf("optarg : %s\n",optarg);
 			break;
@@ -954,6 +957,9 @@ main (int argc, char *argv[])
 		case 'd':
 			if (cmd == CMD_CREATE)
 				cmd = CMD_DRY_RUN;
+			break;
+		case 'D':
+			conf->skip_delegate = 1;
 			break;
 		case 'f':
 			cmd = CMD_FLUSH_ONE;
